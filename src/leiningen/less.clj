@@ -2,13 +2,12 @@
   (:require (leiningen compile help)
             (leiningen.core.main)
             (leiningen.less
-              [compiler :as compiler]
-              [config :refer [config]]
-              [nio :as nio])
+             [compiler :as compiler]
+             [config :refer [config]]
+             [nio :as nio])
             [robert.hooke :as hooke]
             [leiningen.less.engine :as engine])
   (:import (leiningen.less LessError)))
-
 
 (defn- report-error [^LessError error]
   (binding [*out* *err*]
@@ -19,17 +18,17 @@
 
 (defn- run-compiler
   "Run the lesscss compiler."
-  [project {:keys [source-paths target-path] :as config} watch?]
+  [project {:keys [source-paths watch-paths target-path] :as config} watch?]
   (engine/with-engine "javascript"
-    (compiler/initialise)
-    (println "Compiling {less} css:")
-    (let [units (nio/compilation-units source-paths target-path)
-          on-error (if watch? report-error abort-on-error)
-          compile (partial compiler/compile-project project units on-error)]
-      (if watch?
-        (nio/watch-resources project source-paths compile)
-        (compile))
-      (println "Done."))))
+                      (compiler/initialise)
+                      (println "Compiling {less} css:")
+                      (let [units (nio/compilation-units source-paths target-path)
+                            on-error (if watch? report-error abort-on-error)
+                            compile (partial compiler/compile-project project units on-error)]
+                        (if watch?
+                          (nio/watch-resources project watch-paths compile)
+                          (compile))
+                        (println "Done."))))
 
 (defn- once
   "Compile less files once."
@@ -52,9 +51,7 @@
    (let [config (config project)]
      (case subtask
        "once" (apply once project config args)
-       "auto" (apply auto project config args)
-       )))
-  )
+       "auto" (apply auto project config args)))))
 
 (defn compile-hook [task & args]
   (apply task args)
